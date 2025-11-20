@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block content %}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+    /* Grid de Métricas (Igual que en Tienda) */
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .metric-card {
+        background: var(--white);
+        padding: 1.5rem;
+        border-radius: 16px;
+        text-align: center;
+        box-shadow: 0 4px 15px var(--shadow);
+        border: 2px solid transparent;
+    }
+
+    .metric-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .metric-value { font-size: 2rem; font-weight: 800; color: var(--dark); }
+    .metric-label { color: var(--text-light); font-weight: 600; font-size: 0.9rem; text-transform: uppercase; }
+
+    /* Tarjeta de Pedido Activo (Estilo Uber Driver) */
+    .active-order-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        border: 2px solid var(--primary);
+        margin-bottom: 2rem;
+    }
+
+    .order-header {
+        background: var(--primary);
+        color: white;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .map-container {
+        height: 300px;
+        width: 100%;
+        background: #eee;
+        position: relative;
+    }
+
+    .order-details { padding: 1.5rem; }
+
+    .info-row {
+        display: flex; justify-content: space-between; margin-bottom: 0.5rem;
+        padding-bottom: 0.5rem; border-bottom: 1px solid #f5f5f5;
+    }
+    .info-label { color: var(--text-light); }
+    .info-val { font-weight: 700; color: var(--dark); }
+
+    /* Lista de Pedidos Disponibles */
+    .available-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .gig-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 15px var(--shadow);
+        transition: transform 0.2s;
+        border-left: 5px solid var(--accent);
+    }
+    .gig-card:hover { transform: translateY(-3px); }
+
+    .gig-info h4 { margin: 0 0 0.5rem 0; color: var(--dark); }
+    .gig-meta { font-size: 0.9rem; color: var(--text-light); display: flex; gap: 10px; }
+    .gig-price { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+</style>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h2 style="color: var(--dark); margin-bottom: 0.2rem;">🛵 Hola, {{ current_user.nombre }}</h2>
+        <p style="color: var(--text-light);">Estás en línea y listo para entregar.</p>
+    </div>
+    <div style="text-align: right;">
+        <span class="badge" style="background: #E3F9E5; color: #1F4D25; padding: 0.5rem 1rem; font-size: 1rem;">🟢 Conectado</span>
+    </div>
+</div>
+
+<div class="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-icon">🚀</div>
+        <div class="metric-value">{{ mis_entregas|length }}</div>
+        <div class="metric-label">En Curso</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-icon">📦</div>
+        <div class="metric-value">{{ disponibles|length }}</div>
+        <div class="metric-label">Disponibles</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-icon">⭐</div>
+        <div class="metric-value">4.9</div>
+        <div class="metric-label">Calificación</div>
+    </div>
+</div>
+
+{% if mis_entregas %}
+<h3 style="margin-bottom: 1rem; color: var(--primary);">🔥 Entrega en Curso (Urgente)</h3>
+{% for pedido in mis_entregas %}
+<div class="active-order-card">
+    <div class="order-header">
+        <div style="font-weight: 700; font-size: 1.1rem;">Pedido #{{ pedido.id }}</div>
+        <div style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px;">
+            {{ pedido.metodo_pago }}
+        </div>
+    </div>
+    
+    <div id="mapa-{{ pedido.id }}" class="map-container"></div>
+
+    <div class="order-details">
+        <div class="info-row">
+            <span class="info-label">Cliente:</span>
+            <span class="info-val">{{ pedido.cliente.nombre }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Productos:</span>
+            <span class="info-val">
+                {% for item in pedido.items %}
+                    {{ item.producto.nombre }}{% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </span>
+        </div>
+        <div class="info-row" style="border: none;">
+            <span class="info-label">Total a Cobrar:</span>
+            <span class="info-val" style="font-size: 1.5rem; color: var(--primary);">${{ pedido.total }}</span>
+        </div>
+
+        <a href="{{ url_for('delivery.finalizar_pedido', id=pedido.id) }}" class="btn-primary" style="display: block; text-align: center; margin-top: 1rem; text-decoration: none; background: #10b981;">
+            ✅ Marcar como Entregado
+        </a>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var mapId = 'mapa-{{ pedido.id }}';
+        if(document.getElementById(mapId)) {
+            var lat = 19.332; 
+            var lon = -99.184;
+            // Destino simulado aleatorio
+            var destLat = lat + (Math.random() * 0.005);
+            var destLon = lon + (Math.random() * 0.005);
+
+            var map = L.map(mapId).setView([lat, lon], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: 'OSM'
+            }).addTo(map);
+
+            // Iconos simples
+            L.marker([lat, lon]).addTo(map).bindPopup("🏪 Tienda").openPopup();
+            L.marker([destLat, destLon]).addTo(map).bindPopup("👤 Cliente: {{ pedido.cliente.nombre }}");
+
+            // Ruta simple
+            L.polyline([[lat, lon], [destLat, destLon]], {color: '#5941F2', weight: 4, opacity: 0.7}).addTo(map);
+        }
+    });
+</script>
+{% endfor %}
+{% endif %}
+
+<h3 style="margin: 2rem 0 1rem; color: var(--dark);">📦 Nuevas Solicitudes</h3>
+
+{% if disponibles %}
+<div class="available-list">
+    {% for pedido in disponibles %}
+    <div class="gig-card">
+        <div class="gig-info">
+            <h4>Pedido #{{ pedido.id }}</h4>
+            <div class="gig-meta">
+                <span>📍 1.2 km</span>
+                <span>💳 {{ pedido.metodo_pago }}</span>
+                <span>🛍️ {{ pedido.items|length }} items</span>
+            </div>
+        </div>
+        <div style="text-align: right;">
+            <div class="gig-price">${{ pedido.total }}</div>
+            <a href="{{ url_for('delivery.aceptar_pedido', id=pedido.id) }}" class="btn-primary" style="padding: 0.5rem 1.2rem; font-size: 0.9rem; text-decoration: none;">
+                Aceptar
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div style="text-align: center; padding: 3rem; background: white; border-radius: 16px;">
+    <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">💤</div>
+    <h3 style="color: var(--text-light);">No hay pedidos disponibles</h3>
+    <p>Espera un momento, las solicitudes aparecerán aquí.</p>
+</div>
+{% endif %}
+
+{% endblock %}

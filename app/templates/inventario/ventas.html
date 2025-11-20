@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .sales-header {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        text-align: center;
+        margin-bottom: 3rem;
+        box-shadow: 0 10px 30px var(--shadow);
+    }
+    .total-amount { font-size: 4rem; font-weight: 800; margin: 0.5rem 0; }
+    .total-label { font-size: 1.2rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 2px; }
+
+    /* Tabla estilo Pro */
+    .sales-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .sales-table th { text-align: left; padding: 1.2rem; color: var(--text-light); border-bottom: 2px solid #eee; font-size: 0.9rem; }
+    .sales-table td { padding: 1.2rem; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+    .sales-table tr:hover td { background: #fcfcfc; }
+    
+    .status-badge {
+        padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
+    }
+    .st-completed { background: #E3F9E5; color: #1F4D25; }
+    .st-pending { background: #FFF4E5; color: #663C00; }
+    .st-transit { background: #E5F6FF; color: #004085; }
+</style>
+
+<div class="sales-header">
+    <div class="total-label">Ingresos Totales Acumulados</div>
+    <div class="total-amount">${{ total }}</div>
+    <p>Histórico de ventas completadas y pendientes</p>
+</div>
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="color: var(--primary);">📄 Registro de Transacciones</h3>
+        <a href="{{ url_for('inventario.dashboard') }}" style="color: var(--text-light); text-decoration: none; font-weight: 600;">← Volver</a>
+    </div>
+
+    {% if ventas %}
+    <div style="overflow-x: auto;">
+        <table class="sales-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Producto</th>
+                    <th>Cliente</th>
+                    <th>Cant.</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venta in ventas %}
+                <tr>
+                    <td style="color: var(--text-light); font-size: 0.9rem;">
+                        {{ venta.pedido.fecha.strftime('%d/%m/%Y') }}<br>
+                        <small>{{ venta.pedido.fecha.strftime('%H:%M') }}</small>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <img src="{{ url_for('static', filename='uploads/' + venta.producto.imagen) }}" width="40" height="40" style="border-radius: 8px; object-fit: cover; background: #eee;">
+                            <strong>{{ venta.producto.nombre }}</strong>
+                        </div>
+                    </td>
+                    <td>{{ venta.pedido.cliente.nombre }}</td>
+                    <td style="font-weight: 700;">x{{ venta.cantidad }}</td>
+                    <td style="color: var(--primary); font-weight: 700;">
+                        ${{ venta.producto.precio * venta.cantidad }}
+                    </td>
+                    <td>
+                        {% if venta.pedido.estado == 'entregado' %}
+                            <span class="status-badge st-completed">Completado</span>
+                        {% elif venta.pedido.estado == 'pendiente' %}
+                            <span class="status-badge st-pending">Pendiente</span>
+                        {% else %}
+                            <span class="status-badge st-transit">En Camino</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 3rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📉</div>
+        <h3 style="color: var(--text-light);">Aún no hay ventas registradas</h3>
+        <p>Tus productos aparecerán aquí cuando los clientes compren.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

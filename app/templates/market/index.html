@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .product-card {
+        background: var(--white);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px var(--shadow);
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        display: flex; flex-direction: column;
+    }
+    .product-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-8px);
+        box-shadow: 0 12px 35px var(--shadow-hover);
+    }
+    .product-image {
+        width: 100%; height: 200px;
+        object-fit: cover;
+        background: #eee;
+    }
+    .product-content { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
+    .price { color: var(--primary); font-size: 1.5rem; font-weight: 800; margin: 0.5rem 0; }
+    .badge { background: var(--secondary); color: var(--primary); padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+</style>
+
+<div class="grid" style="grid-template-columns: 1fr 3fr; gap: 2rem;">
+    <div>
+        <div class="card" style="position: sticky; top: 100px;">
+            <h3 style="color: var(--primary); margin-bottom: 1rem;">🔍 Filtrar</h3>
+            <form action="{{ url_for('market.catalogo') }}" method="GET">
+                <input type="text" name="q" placeholder="Buscar producto..." value="{{ request.args.get('q', '') }}">
+                
+                <h4 style="margin-top: 1rem; font-size: 1rem; color: var(--text-light);">Categorías</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+                    <a href="{{ url_for('market.catalogo') }}" style="text-decoration: none; color: var(--text);">🏠 Ver Todo</a>
+                    {% for cat in categorias %}
+                        <a href="{{ url_for('market.catalogo', categoria=cat) }}" style="text-decoration: none; color: var(--text);">👉 {{ cat }}</a>
+                    {% endfor %}
+                </div>
+                
+                <button class="btn-primary" style="margin-top: 1rem;">Buscar</button>
+            </form>
+        </div>
+    </div>
+
+    <div>
+        <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));">
+            {% for p in productos %}
+            <div class="product-card">
+                <img src="{{ url_for('static', filename='uploads/' + p.imagen) }}" class="product-image" alt="{{ p.nombre }}">
+                <div class="product-content">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <span class="badge">{{ p.categoria }}</span>
+                        <small>⭐ {{ p.propietario.calificacion }}</small>
+                    </div>
+                    <h3 style="margin-top: 0.5rem; font-size: 1.2rem;">{{ p.nombre }}</h3>
+                    <small style="color: var(--text-light);">🏪 {{ p.propietario.nombre }}</small>
+                    
+                    <div class="price">${{ p.precio }}</div>
+                    
+                    <a href="{{ url_for('market.agregar_carrito', id=p.id) }}" class="btn-primary" style="text-align: center; margin-top: auto; text-decoration: none;">
+                        Agregar +
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div class="card" style="grid-column: 1/-1; text-align: center;">
+                <h2>😢 No encontramos resultados</h2>
+                <p>Intenta buscar otra cosa.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

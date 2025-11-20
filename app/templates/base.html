@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeciMarket - Tu Marketplace Vecinal</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        /* --- ESTILOS VECIMARKET PRO --- */
+        :root {
+            --primary: #5941F2;
+            --secondary: #F2AEEE;
+            --accent: #F2B035;
+            --danger: #F24535;
+            --background: #F2F2F2;
+            --white: #ffffff;
+            --dark: #1a1a2e;
+            --text: #2d3748;
+            --text-light: #718096;
+            --shadow: rgba(89, 65, 242, 0.1);
+            --shadow-hover: rgba(89, 65, 242, 0.2);
+        }
+
+        .theme-warm { --primary: #F2B035; --secondary: #F2AEEE; --accent: #5941F2; }
+        .theme-pink { --primary: #F2AEEE; --secondary: #5941F2; --accent: #F2B035; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER & NAV */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 20px var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-decoration: none;
+            color: white;
+        }
+
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: var(--white);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .nav-btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border: 2px solid transparent;
+            margin-left: 0.5rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--white);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        /* LAYOUT & CARDS */
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+            flex: 1; /* Hace que el main ocupe el espacio disponible */
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px var(--shadow);
+            margin-bottom: 2rem;
+            border: 1px solid rgba(89, 65, 242, 0.05);
+        }
+
+        /* FORMS */
+        input, select, textarea {
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            font-size: 1rem;
+            background: var(--white);
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--shadow);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+
+        .btn-primary:hover { transform: translateY(-3px); }
+
+        /* GRID SYSTEM */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* ALERTAS */
+        .alert {
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        .alert-warning { background: #FFF4E5; color: #663C00; border-left: 4px solid #FFA000; }
+        .alert-success { background: #E3F9E5; color: #1F4D25; border-left: 4px solid #28A745; }
+        .alert-danger { background: #FFEBEB; color: #A71D2A; border-left: 4px solid #DC3545; }
+
+        /* THEME SELECTOR */
+        .theme-selector { display: flex; gap: 5px; background: rgba(255,255,255,0.2); padding: 5px; border-radius: 8px; }
+        .theme-circle { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid white; }
+        .t-def { background: linear-gradient(135deg, #5941F2, #F2B035); }
+        .t-warm { background: linear-gradient(135deg, #F2B035, #F2AEEE); }
+        .t-pink { background: linear-gradient(135deg, #F2AEEE, #5941F2); }
+
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <a href="{{ url_for('market.home') }}" class="logo">
+                <div class="logo-icon">🏘️</div>
+                <span>VeciMarket</span>
+            </a>
+
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="theme-selector">
+                    <div class="theme-circle t-def" onclick="cambiarTema('')" title="Original"></div>
+                    <div class="theme-circle t-warm" onclick="cambiarTema('warm')" title="Cálido"></div>
+                    <div class="theme-circle t-pink" onclick="cambiarTema('pink')" title="Rosa"></div>
+                </div>
+
+                {% if current_user.is_authenticated %}
+                    {% if current_user.rol == 'cliente' %}
+                        <a href="{{ url_for('market.catalogo') }}" class="nav-btn">🛍️ Catálogo</a>
+                        <a href="{{ url_for('market.ver_carrito') }}" class="nav-btn">🛒 Carrito ({{ session.get('carrito', [])|length }})</a>
+                        <a href="{{ url_for('market.historial') }}" class="nav-btn">📦 Mis Pedidos</a>
+                    {% elif current_user.rol == 'tienda' %}
+                        <a href="{{ url_for('inventario.dashboard') }}" class="nav-btn">📊 Mi Panel</a>
+                    {% elif current_user.rol == 'repartidor' %}
+                        <a href="{{ url_for('delivery.dashboard') }}" class="nav-btn">🛵 Repartos</a>
+                    {% endif %}
+                    <a href="{{ url_for('auth.logout') }}" class="nav-btn" style="background: rgba(255,0,0,0.2);">🚪 Salir</a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="nav-btn">👤 Iniciar Sesión</a>
+                    <a href="{{ url_for('auth.registro') }}" class="nav-btn" style="background: white; color: var(--primary);">📝 Crear Cuenta</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-warning">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer style="text-align: center; padding: 2rem; background: var(--dark); color: white; margin-top: auto;">
+        <p>© 2025 VeciMarket - Comercio Local Inteligente</p>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        function cambiarTema(tema) {
+            document.body.className = tema ? `theme-${tema}` : '';
+            localStorage.setItem('tema', tema);
+        }
+        // Cargar tema guardado
+        if(localStorage.getItem('tema')) {
+            cambiarTema(localStorage.getItem('tema'));
+        }
+    </script>
+</body>
+</html>

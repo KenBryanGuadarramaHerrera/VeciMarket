@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="max-width: 800px; margin: 0 auto;">
+    
+    <a href="{{ url_for('inventario.dashboard') }}" style="display: inline-flex; align-items: center; gap: 5px; text-decoration: none; color: var(--text-light); margin-bottom: 1rem; font-weight: 600;">
+        ← Volver al Panel
+    </a>
+
+    <div class="card">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h2 style="color: var(--primary); margin-bottom: 0.5rem;">Nuevo Producto</h2>
+            <p style="color: var(--text-light);">Agrega un nuevo artículo a tu catálogo digital.</p>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+            
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="font-weight: 700; margin-bottom: 0.5rem; display: block; color: var(--dark);">Nombre del Producto</label>
+                    <input type="text" name="nombre" placeholder="Ej. Coca Cola 600ml" required>
+                </div>
+                <div>
+                    <label style="font-weight: 700; margin-bottom: 0.5rem; display: block; color: var(--dark);">Categoría</label>
+                    <select name="categoria">
+                        <option value="Alimentos">🍕 Alimentos</option>
+                        <option value="Bebidas">🥤 Bebidas</option>
+                        <option value="Farmacia">💊 Farmacia</option>
+                        <option value="Ferreteria">🔨 Ferretería</option>
+                        <option value="Hogar">🏠 Hogar</option>
+                        <option value="Tecnologia">📱 Tecnología</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-weight: 700; margin-bottom: 0.5rem; display: block; color: var(--dark);">Foto del Producto</label>
+                <input type="file" name="imagen" style="padding: 0.7rem; background: #f8f9fa; border: 2px dashed #ddd;">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-weight: 700; margin-bottom: 0.5rem; display: block; color: var(--dark);">Descripción</label>
+                <textarea name="descripcion" placeholder="Detalles, ingredientes o características..." style="height: 100px;"></textarea>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 2rem 0;">
+
+            <h4 style="color: var(--primary); margin-bottom: 1rem;">📦 Datos de Inventario</h4>
+            <div class="grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                <div>
+                    <label style="font-size: 0.9rem; color: var(--text-light);">Precio ($)</label>
+                    <input type="number" step="0.01" name="precio" placeholder="0.00" required style="font-weight: 700; color: var(--primary);">
+                </div>
+                <div>
+                    <label style="font-size: 0.9rem; color: var(--text-light);">Stock Inicial</label>
+                    <input type="number" name="stock" placeholder="0" required>
+                </div>
+                <div>
+                    <label style="font-size: 0.9rem; color: var(--text-light);">Alerta Mínima</label>
+                    <input type="number" name="minimo" value="5">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="font-size: 1.1rem; padding: 1.2rem;">
+                💾 Guardar Producto
+            </button>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    /* Estilos específicos para que la tabla se vea moderna (Estilo Rappi/Uber) */
+    .cart-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .cart-table th {
+        text-align: left;
+        padding: 1rem;
+        color: var(--text-light);
+        font-size: 0.9rem;
+        border-bottom: 2px solid #eee;
+    }
+    .cart-table td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #eee;
+    }
+    .cart-table tr:last-child td {
+        border-bottom: none;
+    }
+    .product-thumb {
+        width: 50px; height: 50px;
+        border-radius: 10px;
+        object-fit: cover;
+        margin-right: 10px;
+        background-color: #f0f0f0;
+    }
+    
+    /* Ajuste para que el resumen se quede fijo al bajar (Sticky) */
+    .summary-card {
+        position: sticky;
+        top: 100px; /* Se queda fijo 100px abajo del techo */
+    }
+
+    /* Estilos para los radio buttons personalizados */
+    .radio-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 1.5rem;
+    }
+    .radio-option {
+        display: flex;
+        align-items: center;
+        padding: 0.8rem;
+        border: 2px solid #eee;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .radio-option:hover { border-color: var(--secondary); }
+    .radio-option input:checked + label { color: var(--primary); font-weight: 700; }
+    /* El input real lo escondemos visualmente o lo dejamos sutil */
+    .radio-option input { width: auto; margin: 0 10px 0 0; }
+    .radio-option label { cursor: pointer; flex: 1; margin: 0; }
+
+</style>
+
+<h2 style="margin-bottom: 1.5rem; color: var(--dark);">🛒 Tu Carrito de Compras</h2>
+
+<div class="grid" style="grid-template-columns: 2fr 1fr; gap: 2rem; align-items: start;">
+
+    <div>
+        <div class="card">
+            {% if productos %}
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Tienda</th>
+                        <th>Precio</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in productos %}
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center;">
+                                <img src="{{ url_for('static', filename='uploads/' + p.imagen) }}" class="product-thumb" alt="img">
+                                <div>
+                                    <strong style="display: block; color: var(--dark);">{{ p.nombre }}</strong>
+                                    <small style="color: var(--text-light);">{{ p.categoria }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span style="background: #eee; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">
+                                🏪 {{ p.propietario.nombre }}
+                            </span>
+                        </td>
+                        <td>
+                            <span style="color: var(--primary); font-weight: 700;">${{ p.precio }}</span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('market.eliminar_item_carrito', id=p.id) }}" 
+                               style="color: var(--danger); text-decoration: none; font-weight: 700; font-size: 1.2rem;"
+                               title="Eliminar">
+                                &times;
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div style="margin-top: 1.5rem; text-align: right;">
+                <a href="{{ url_for('market.limpiar_carrito') }}" style="color: var(--text-light); text-decoration: none; font-size: 0.9rem;">
+                    🗑️ Vaciar todo el carrito
+                </a>
+            </div>
+
+            {% else %}
+            <div style="text-align: center; padding: 3rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🛒</div>
+                <h3 style="color: var(--text-light);">Tu carrito está vacío</h3>
+                <a href="{{ url_for('market.catalogo') }}" class="btn-primary" style="display: inline-block; width: auto; margin-top: 1rem;">
+                    Ir a comprar
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="summary-card">
+        <div class="card" style="background: linear-gradient(to bottom, #fff, #fafafa);">
+            <h3 style="color: var(--primary); margin-bottom: 1.5rem;">Resumen del Pedido</h3>
+            
+            {% if productos %}
+            <form method="POST">
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem; color: var(--text);">📍 Entrega</h4>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="envio" name="tipo_entrega" value="envio" checked>
+                        <label for="envio">🛵 Envío a Domicilio</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="recoger" name="tipo_entrega" value="recoger">
+                        <label for="recoger">🏪 Recoger en Tienda</label>
+                    </div>
+                </div>
+
+                <h4 style="font-size: 1rem; margin-bottom: 0.5rem; color: var(--text);">💳 Pago</h4>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="efectivo" name="metodo_pago" value="efectivo" checked>
+                        <label for="efectivo">💵 Efectivo</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="tarjeta" name="metodo_pago" value="tarjeta">
+                        <label for="tarjeta">💳 Tarjeta (Simulado)</label>
+                    </div>
+                </div>
+
+                <hr style="border: 0; border-top: 2px dashed #ddd; margin: 1.5rem 0;">
+
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
+                    <span style="color: var(--text-light);">Total a Pagar:</span>
+                    <span style="font-size: 2rem; font-weight: 800; color: var(--dark); line-height: 1;">${{ total }}</span>
+                </div>
+
+                <button type="submit" class="btn-primary" style="box-shadow: 0 10px 20px var(--shadow-hover);">
+                    Confirmar Pedido ✓
+                </button>
+            </form>
+            {% else %}
+            <p style="color: var(--text-light); text-align: center;">Agrega productos para ver el resumen.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<style>
+    @media (max-width: 768px) {
+        .grid { grid-template-columns: 1fr !important; }
+        .summary-card { position: static; }
+    }
+</style>
+
+{% endblock %}

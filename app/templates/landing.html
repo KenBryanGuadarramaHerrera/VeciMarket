@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    /* Estilos específicos para la Landing Page */
+    .hero {
+        text-align: center;
+        padding: 5rem 2rem;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        border-radius: 24px;
+        color: white;
+        margin-bottom: 3rem;
+        box-shadow: 0 10px 30px var(--shadow);
+    }
+    .hero h1 { font-size: 3.5rem; font-weight: 800; margin-bottom: 1rem; }
+    .hero p { font-size: 1.4rem; opacity: 0.9; margin-bottom: 2rem; }
+    
+    .feature-card {
+        text-align: center;
+        background: white;
+        padding: 2rem;
+        border-radius: 16px;
+        transition: transform 0.3s;
+        box-shadow: 0 4px 20px var(--shadow);
+    }
+    .feature-card:hover { transform: translateY(-10px); }
+    .icon { font-size: 4rem; margin-bottom: 1rem; }
+
+    .cta-buttons {
+        display: flex; 
+        justify-content: center; 
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-hero {
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: transform 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-hero:hover { transform: translateY(-3px); }
+    
+    .btn-white { background: white; color: var(--primary); }
+    .btn-glass { background: rgba(255,255,255,0.2); color: white; }
+
+</style>
+
+<div class="hero">
+    <h1>🏘️ Bienvenido a VeciMarket</h1>
+    <p>Conecta con los comercios de tu colonia. Compra local, recibe rápido.</p>
+    
+    <div class="cta-buttons">
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('market.catalogo') }}" class="btn-hero btn-white">
+                🛍️ Ir al Catálogo
+            </a>
+        {% else %}
+            <a href="{{ url_for('auth.registro') }}" class="btn-hero btn-white">
+                🚀 Comenzar Ahora
+            </a>
+            <a href="{{ url_for('market.catalogo') }}" class="btn-hero btn-glass">
+                👀 Solo ver
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<h2 style="text-align: center; margin-bottom: 2rem; color: var(--dark);">¿Cómo funciona?</h2>
+
+<div class="grid">
+    <div class="feature-card">
+        <div class="icon">🔍</div>
+        <h3>Explora</h3>
+        <p style="color: var(--text-light);">Descubre tiendas locales en tu colonia y encuentra lo que necesitas.</p>
+    </div>
+    <div class="feature-card">
+        <div class="icon">🛒</div>
+        <h3>Compra</h3>
+        <p style="color: var(--text-light);">Agrega productos al carrito y paga de manera segura.</p>
+    </div>
+    <div class="feature-card">
+        <div class="icon">🚀</div>
+        <h3>Recibe</h3>
+        <p style="color: var(--text-light);">Entrega rápida por repartidores de tu misma zona.</p>
+    </div>
+</div>
+
+<div style="margin-top: 4rem; text-align: center;">
+    <h3 style="color: var(--primary); margin-bottom: 1rem;">¿Tienes un negocio?</h3>
+    <p style="margin-bottom: 2rem;">Únete a la red de comercios locales y digitaliza tu inventario hoy mismo.</p>
+    <a href="{{ url_for('auth.registro') }}" class="btn-primary" style="display: inline-block; width: auto;">Registrar mi Tienda</a>
+</div>
+
+{% endblock %}

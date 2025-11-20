@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="max-width: 450px; margin: 3rem auto;">
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">👋</div>
+        <h2 style="color: var(--primary); margin-bottom: 0.5rem;">Bienvenido</h2>
+        <p style="color: var(--text-light); margin-bottom: 2rem;">Inicia sesión en VeciMarket</p>
+
+        <form method="POST">
+            <div style="text-align: left;">
+                <label style="font-weight: 600; margin-bottom: 5px; display: block;">Correo Electrónico</label>
+                <input type="email" name="email" placeholder="tu@correo.com" required>
+            </div>
+            
+            <div style="text-align: left;">
+                <label style="font-weight: 600; margin-bottom: 5px; display: block;">Contraseña</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-primary">Ingresar</button>
+        </form>
+
+        <div style="margin-top: 1.5rem;">
+            <p style="font-size: 0.9rem;">¿No tienes cuenta? <a href="{{ url_for('auth.registro') }}" style="color: var(--accent); font-weight: 700;">Regístrate aquí</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
