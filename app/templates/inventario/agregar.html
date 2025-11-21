@@ -2,70 +2,83 @@
 {% block content %}
 
 <div style="max-width: 800px; margin: 0 auto;">
-    
-    <a href="{{ url_for('inventario.dashboard') }}" style="display: inline-flex; align-items: center; gap: 5px; text-decoration: none; color: var(--text-light); margin-bottom: 1rem; font-weight: 600;">
-        ← Volver al Panel
-    </a>
+    <a href="{{ url_for('inventario.dashboard') }}" style="text-decoration: none; color: var(--text-light); margin-bottom: 1rem; display: block; font-weight: 600;">← Volver al Panel</a>
 
     <div class="card">
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <h2 style="color: var(--primary); margin-bottom: 0.5rem;">Nuevo Producto</h2>
-            <p style="color: var(--text-light);">Agrega un nuevo artículo a tu catálogo digital.</p>
-        </div>
+        <h2 style="color: var(--primary); text-align: center; margin-bottom: 2rem;">Publicar Nuevo Ítem</h2>
 
         <form method="POST" enctype="multipart/form-data">
             
-            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div style="background: #f0f4ff; padding: 1rem; border-radius: 12px; border: 1px solid var(--primary); margin-bottom: 1.5rem;">
+                <label style="font-weight: 700; margin-bottom: 0.5rem; display: block; color: var(--dark);">¿Qué vas a ofrecer?</label>
+                <select name="tipo" id="tipoSelector" onchange="toggleStock()" style="margin-bottom: 0;">
+                    <option value="producto">📦 Producto (Se envía, maneja stock)</option>
+                    <option value="servicio">🛠️ Servicio (Se agenda, contacto directo)</option>
+                </select>
+            </div>
+
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                 <div>
-                    <label style="font-weight: 700; margin-bottom: 0.5rem; display: block; color: var(--dark);">Nombre del Producto</label>
-                    <input type="text" name="nombre" placeholder="Ej. Coca Cola 600ml" required>
+                    <label style="font-weight: 600;">Nombre</label>
+                    <input type="text" name="nombre" placeholder="Ej. Reparación de PC o Coca Cola" required>
                 </div>
                 <div>
-                    <label style="font-weight: 700; margin-bottom: 0.5rem; display: block; color: var(--dark);">Categoría</label>
+                    <label style="font-weight: 600;">Categoría</label>
                     <select name="categoria">
-                        <option value="Alimentos">🍕 Alimentos</option>
-                        <option value="Bebidas">🥤 Bebidas</option>
-                        <option value="Farmacia">💊 Farmacia</option>
-                        <option value="Ferreteria">🔨 Ferretería</option>
-                        <option value="Hogar">🏠 Hogar</option>
-                        <option value="Tecnologia">📱 Tecnología</option>
+                        <option value="Alimentos">Alimentos / Bebidas</option>
+                        <option value="Servicios">Servicios Profesionales</option>
+                        <option value="Hogar">Hogar / Ferretería</option>
+                        <option value="Tecnologia">Tecnología</option>
+                        <option value="Salud">Salud / Belleza</option>
                     </select>
                 </div>
             </div>
 
-            <div style="margin-bottom: 1.5rem;">
-                <label style="font-weight: 700; margin-bottom: 0.5rem; display: block; color: var(--dark);">Foto del Producto</label>
-                <input type="file" name="imagen" style="padding: 0.7rem; background: #f8f9fa; border: 2px dashed #ddd;">
+            <div style="margin-bottom: 1rem;">
+                <label style="font-weight: 600;">Foto del Ítem</label>
+                <input type="file" name="imagen" style="padding: 0.5rem;">
             </div>
 
-            <div style="margin-bottom: 1.5rem;">
-                <label style="font-weight: 700; margin-bottom: 0.5rem; display: block; color: var(--dark);">Descripción</label>
-                <textarea name="descripcion" placeholder="Detalles, ingredientes o características..." style="height: 100px;"></textarea>
+            <label style="font-weight: 600;">Descripción</label>
+            <textarea name="descripcion" placeholder="Detalles, ingredientes o características..." style="height: 100px;"></textarea>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 1.5rem 0;">
+
+            <div style="margin-bottom: 1rem;">
+                 <label style="font-weight: 600; color: var(--primary);">Precio ($)</label>
+                 <input type="number" step="0.01" name="precio" placeholder="0.00" required style="font-weight: 700; font-size: 1.1rem;">
             </div>
 
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 2rem 0;">
-
-            <h4 style="color: var(--primary); margin-bottom: 1rem;">📦 Datos de Inventario</h4>
-            <div class="grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+            <div id="stockDiv" class="grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem; background: #fafafa; padding: 1rem; border-radius: 12px; border: 1px solid #eee;">
                 <div>
-                    <label style="font-size: 0.9rem; color: var(--text-light);">Precio ($)</label>
-                    <input type="number" step="0.01" name="precio" placeholder="0.00" required style="font-weight: 700; color: var(--primary);">
+                    <label style="font-weight: 600;">Stock Disponible</label>
+                    <input type="number" name="stock" value="1" style="margin-bottom: 0;">
                 </div>
                 <div>
-                    <label style="font-size: 0.9rem; color: var(--text-light);">Stock Inicial</label>
-                    <input type="number" name="stock" placeholder="0" required>
-                </div>
-                <div>
-                    <label style="font-size: 0.9rem; color: var(--text-light);">Alerta Mínima</label>
-                    <input type="number" name="minimo" value="5">
+                    <label style="font-weight: 600;">Alerta Stock Mínimo</label> <input type="number" name="minimo" value="5" style="margin-bottom: 0;">
+                    <small style="color: var(--text-light);">Te avisaremos si baja de esto.</small>
                 </div>
             </div>
 
-            <button type="submit" class="btn-primary" style="font-size: 1.1rem; padding: 1.2rem;">
-                💾 Guardar Producto
-            </button>
-
+            <button type="submit" class="btn-primary" style="margin-top: 2rem; font-size: 1.1rem;">Publicar Ahora</button>
         </form>
     </div>
 </div>
+
+<script>
+    function toggleStock() {
+        const tipo = document.getElementById('tipoSelector').value;
+        const stockDiv = document.getElementById('stockDiv');
+        
+        // Ocultamos todo el bloque de stock (cantidad y mínimo) si es servicio
+        if (tipo === 'servicio') {
+            stockDiv.style.display = 'none';
+        } else {
+            stockDiv.style.display = 'grid'; // Usamos grid para mantener el diseño de 2 columnas
+        }
+    }
+    
+    // Ejecutar al cargar por si el navegador guardó la selección anterior
+    document.addEventListener("DOMContentLoaded", toggleStock);
+</script>
 {% endblock %}

@@ -2,6 +2,7 @@
 {% block content %}
 
 <style>
+    /* Estilos de Tarjeta de Producto */
     .product-card {
         background: var(--white);
         border-radius: 16px;
@@ -10,69 +11,142 @@
         transition: all 0.3s ease;
         border: 2px solid transparent;
         display: flex; flex-direction: column;
+        position: relative;
     }
     .product-card:hover {
         border-color: var(--primary);
-        transform: translateY(-8px);
+        transform: translateY(-5px);
         box-shadow: 0 12px 35px var(--shadow-hover);
     }
     .product-image {
-        width: 100%; height: 200px;
+        width: 100%; height: 180px;
         object-fit: cover;
         background: #eee;
     }
     .product-content { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
-    .price { color: var(--primary); font-size: 1.5rem; font-weight: 800; margin: 0.5rem 0; }
-    .badge { background: var(--secondary); color: var(--primary); padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+    
+    /* Botones */
+    .whatsapp-btn {
+        background: #25D366; color: white; width: 100%; padding: 0.8rem;
+        border-radius: 12px; font-weight: 700; text-decoration: none;
+        display: inline-block; text-align: center; border: none; margin-top: auto;
+        transition: transform 0.2s;
+    }
+    .whatsapp-btn:hover { background: #128C7E; transform: translateY(-2px); }
+
+    /* Enlaces de Categoría (Links rápidos) */
+    .cat-link {
+        display: block; padding: 0.8rem; color: var(--text); 
+        text-decoration: none; border-radius: 8px; transition: background 0.2s;
+        border-left: 3px solid transparent;
+    }
+    .cat-link:hover { background: #f7fafc; }
+    .cat-link.active { 
+        background: #f0f4ff; color: var(--primary); border-left-color: var(--primary); font-weight: 700; 
+    }
 </style>
 
-<div class="grid" style="grid-template-columns: 1fr 3fr; gap: 2rem;">
+<div class="grid" style="grid-template-columns: 1fr 3fr; gap: 2rem; align-items: start;">
+    
     <div>
         <div class="card" style="position: sticky; top: 100px;">
-            <h3 style="color: var(--primary); margin-bottom: 1rem;">🔍 Filtrar</h3>
-            <form action="{{ url_for('market.catalogo') }}" method="GET">
-                <input type="text" name="q" placeholder="Buscar producto..." value="{{ request.args.get('q', '') }}">
+            <h3 style="color: var(--primary); margin-bottom: 1rem;">🔍 Buscar</h3>
+            
+            <form action="{{ url_for('market.catalogo') }}" method="GET" style="margin-bottom: 2rem;">
                 
-                <h4 style="margin-top: 1rem; font-size: 1rem; color: var(--text-light);">Categorías</h4>
-                <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
-                    <a href="{{ url_for('market.catalogo') }}" style="text-decoration: none; color: var(--text);">🏠 Ver Todo</a>
+                <input type="text" name="q" placeholder="Ej. Pizza, Plomero..." value="{{ request.args.get('q', '') }}" style="margin-bottom: 0.8rem;">
+                
+                <select name="categoria" style="margin-bottom: 0.8rem; cursor: pointer;">
+                    <option value="">Todas las categorías</option>
                     {% for cat in categorias %}
-                        <a href="{{ url_for('market.catalogo', categoria=cat) }}" style="text-decoration: none; color: var(--text);">👉 {{ cat }}</a>
+                    <option value="{{ cat }}" {% if request.args.get('categoria') == cat %}selected{% endif %}>
+                        {{ cat }}
+                    </option>
                     {% endfor %}
-                </div>
+                </select>
+
+                {% if request.args.get('tipo') %}
+                <input type="hidden" name="tipo" value="{{ request.args.get('tipo') }}">
+                {% endif %}
                 
-                <button class="btn-primary" style="margin-top: 1rem;">Buscar</button>
+                <button class="btn-primary" type="submit">Buscar</button>
             </form>
+            
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 1.5rem 0;">
+            
+            <h4 style="color: var(--dark); margin-bottom: 1rem; font-size: 1rem;">🏷️ Filtrar por Tipo</h4>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <a href="{{ url_for('market.catalogo') }}" class="cat-link {% if not request.args.get('tipo') %}active{% endif %}">Todo</a>
+                <a href="{{ url_for('market.catalogo', tipo='producto') }}" class="cat-link {% if request.args.get('tipo') == 'producto' %}active{% endif %}">📦 Productos</a>
+                <a href="{{ url_for('market.catalogo', tipo='servicio') }}" class="cat-link {% if request.args.get('tipo') == 'servicio' %}active{% endif %}">🛠️ Servicios</a>
+            </div>
+
+            {% if session.get('carrito') %}
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 1.5rem 0;">
+            <a href="{{ url_for('market.ver_carrito') }}" class="btn-primary" style="background: var(--accent); color: var(--dark);">
+                🛒 Ver Carrito ({{ session.get('carrito')|length }})
+            </a>
+            {% endif %}
         </div>
     </div>
 
     <div>
-        <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));">
+        <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.5rem;">
             {% for p in productos %}
-            <div class="product-card">
-                <img src="{{ url_for('static', filename='uploads/' + p.imagen) }}" class="product-image" alt="{{ p.nombre }}">
-                <div class="product-content">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <span class="badge">{{ p.categoria }}</span>
-                        <small>⭐ {{ p.propietario.calificacion }}</small>
+                {% if not request.args.get('tipo') or request.args.get('tipo') == p.tipo %}
+                <div class="product-card">
+                    <img src="{{ url_for('static', filename='uploads/' + p.imagen) }}" class="product-image" alt="{{ p.nombre }}">
+                    <div class="product-content">
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                            <span class="badge" style="background: #f0f0f0; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">{{ p.categoria }}</span>
+                            {% if p.tipo == 'servicio' %}
+                                <span class="badge" style="background: #FFF4E5; color: #FF9800; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">🛠️ Servicio</span>
+                            {% endif %}
+                        </div>
+
+                        <h3 style="font-size: 1.1rem; margin-bottom: 0.2rem;">{{ p.nombre }}</h3>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; font-size: 0.9rem;">
+                            <span style="color: var(--text-light);">🏪 {{ p.propietario.nombre }}</span>
+                            <span style="font-weight: 700; color: var(--dark); display: flex; align-items: center; gap: 3px;">
+                                <span style="color: #F59E0B;">⭐</span> {{ p.propietario.calificacion }}
+                            </span>
+                        </div>
+                        
+                        <div style="font-size: 1.4rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem;">
+                            ${{ p.precio }}
+                        </div>
+                        
+                        {% if p.tipo == 'servicio' %}
+                            <a href="https://wa.me/52{{ p.propietario.telefono }}?text=Hola, vi tu servicio de {{ p.nombre }} en VeciMarket" target="_blank" class="whatsapp-btn">
+                                💬 Contactar
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('market.agregar_carrito', id=p.id) }}" class="btn-primary" style="text-align: center; text-decoration: none; padding: 0.7rem;">
+                                Agregar +
+                            </a>
+                        {% endif %}
                     </div>
-                    <h3 style="margin-top: 0.5rem; font-size: 1.2rem;">{{ p.nombre }}</h3>
-                    <small style="color: var(--text-light);">🏪 {{ p.propietario.nombre }}</small>
-                    
-                    <div class="price">${{ p.precio }}</div>
-                    
-                    <a href="{{ url_for('market.agregar_carrito', id=p.id) }}" class="btn-primary" style="text-align: center; margin-top: auto; text-decoration: none;">
-                        Agregar +
-                    </a>
                 </div>
-            </div>
+                {% endif %}
             {% else %}
-            <div class="card" style="grid-column: 1/-1; text-align: center;">
-                <h2>😢 No encontramos resultados</h2>
-                <p>Intenta buscar otra cosa.</p>
-            </div>
+                <div class="card" style="grid-column: 1/-1; text-align: center; padding: 4rem;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">🤔</div>
+                    <h3 style="color: var(--text-light);">No encontramos resultados</h3>
+                    <p>Intenta buscar otra cosa o cambia los filtros.</p>
+                    <a href="{{ url_for('market.catalogo') }}" class="btn-primary" style="display: inline-block; width: auto; margin-top: 1rem;">Ver Todo</a>
+                </div>
             {% endfor %}
         </div>
     </div>
 </div>
+
+<style>
+    @media (max-width: 768px) {
+        .grid { grid-template-columns: 1fr !important; }
+        .card { position: static !important; }
+    }
+</style>
+
 {% endblock %}

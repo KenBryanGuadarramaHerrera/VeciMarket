@@ -1,38 +1,26 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h4>Crear Cuenta</h4>
+<div style="max-width: 450px; margin: 3rem auto;">
+    <div class="card" style="text-align: center;">
+        <h2 style="color: var(--primary); margin-bottom: 2rem;">Crear Cuenta</h2>
+        <form method="POST">
+            <input type="text" name="nombre" placeholder="Nombre Completo o Negocio" required>
+            <input type="email" name="email" placeholder="Correo Electrónico" required>
+            <input type="tel" name="telefono" placeholder="Teléfono (WhatsApp)" required>
+            
+            <input type="password" name="password" placeholder="Contraseña" required>
+            
+            <div style="text-align: left; margin-bottom: 1rem;">
+                <label style="font-weight: 600; color: var(--text-light);">Soy:</label>
+                <select name="rol" style="margin-top: 5px;">
+                    <option value="cliente">👤 Cliente (Quiero comprar)</option>
+                    <option value="tienda">🏪 Negocio (Vendo Prod/Serv)</option>
+                    <option value="repartidor">🛵 Repartidor</option>
+                </select>
             </div>
-            <div class="card-body">
-                <form method="POST">
-                    <div class="mb-3">
-                        <label>Nombre Completo</label>
-                        <input type="text" name="nombre" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>Correo Electrónico</label>
-                        <input type="email" name="email" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>Contraseña</label>
-                        <input type="password" name="password" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>¿Cómo quieres usar la plataforma?</label>
-                        <select name="rol" class="form-select">
-                            <option value="cliente">Quiero Comprar (Cliente)</option>
-                            <option value="tienda">Quiero Vender (Tienda Local)</option>
-                            <option value="repartidor">Quiero Entregar (Repartidor)</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Registrarse</button>
-                </form>
-            </div>
-        </div>
+            
+            <button type="submit" class="btn-primary">Registrarse</button>
+        </form>
     </div>
 </div>
 {% endblock %}
