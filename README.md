@@ -17,7 +17,7 @@ Este proyecto implementa una solución integral de comercio electrónico "Hiperl
 ##  Arquitectura del Proyecto
 
 El sistema sigue una arquitectura **MVC (Modelo-Vista-Controlador)** modularizada. A continuación se describe la estructura de carpetas y archivos:
-```text
+
 ```text
 /marketplace_proyecto
 │
